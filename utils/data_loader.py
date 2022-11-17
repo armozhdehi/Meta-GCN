@@ -8,6 +8,10 @@ def data_loader_diabetes(args):
     # print(diabetes_df.head(10))
     dataset_length = diabetes_df.values.shape[0]
     diabetes_n_features = diabetes_df.values.shape[1] - 2
+    diabetes_Y_np = diabetes_df.drop(columns=('Glucose')).values[:, -1].unique()
+    diabetes_n_labels = len(pd.DataFrame(diabetes_Y_np, columns=['labels']).labels.unique())
+    # print(diabetes_Y_df)
+
     diabetes_train_X_df = diabetes_df.drop(columns=('Glucose')).values[:int(dataset_length * args.train_ratio), :-1]
     diabetes_train_Y_df = diabetes_df.values[:int(dataset_length * args.train_ratio), -1]
     diabetes_val_X_df = diabetes_df.drop(columns=('Glucose')).values[int(dataset_length * args.train_ratio):int(dataset_length * (1 - args.test_ratio)), :-1]
