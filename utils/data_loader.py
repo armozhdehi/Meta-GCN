@@ -21,9 +21,11 @@ def data_loader_diabetes(args):
     diabetes_n_labels = len(diabetes_Y_np)
     for outcome in diabetes_Y_np:
         outcome_group = diabetes_df[diabetes_df['Outcome'] == outcome]
-        diabetes_train_idx = np.append(diabetes_val_idx, outcome_group[:int(len(outcome_group) * args.train_ratio)].index)
-        diabetes_val_idx = np.append(diabetes_val_idx, outcome_group[int(len(outcome_group) * args.train_ratio):int(len(outcome_group) * (1 - args.test_ratio))].index)
-        diabetes_test_idx = np.append(diabetes_val_idx, outcome_group[:int(len(outcome_group) * (1 - args.test_ratio))].index)
+        first = int(len(outcome_group) * args.train_ratio)
+        last = int(len(outcome_group) * (1 - args.test_ratio))
+        diabetes_train_idx = np.append(diabetes_val_idx, outcome_group[:first].index)
+        diabetes_val_idx = np.append(diabetes_val_idx, outcome_group[first:last].index)
+        diabetes_test_idx = np.append(diabetes_val_idx, outcome_group[last:].index)
     # print(diabetes_Y_df)
     # diabetes_train_X_df = diabetes_df.drop(columns=('Glucose')).values[:int(dataset_length * args.train_ratio), :-1]
     # diabetes_train_Y_df = diabetes_df.values[:int(dataset_length * args.train_ratio), -1]
@@ -111,7 +113,7 @@ def data_loader_haberman(args):
         outcome_group = haberman_df[haberman_df['Survival'] == outcome]
         haberman_train_idx = np.append(haberman_val_idx, outcome_group[:int(len(outcome_group) * args.train_ratio)].index)
         haberman_val_idx = np.append(haberman_val_idx, outcome_group[int(len(outcome_group) * args.train_ratio):int(len(outcome_group) * (1 - args.test_ratio))].index)
-        haberman_test_idx = np.append(haberman_val_idx, outcome_group[:int(len(outcome_group) * (1 - args.test_ratio))].index)
+        haberman_test_idx = np.append(haberman_val_idx, outcome_group[int(len(outcome_group) * (1 - args.test_ratio)):].index)
     # print(diabetes_Y_df)
     # diabetes_train_X_df = diabetes_df.drop(columns=('Glucose')).values[:int(dataset_length * args.train_ratio), :-1]
     # diabetes_train_Y_df = diabetes_df.values[:int(dataset_length * args.train_ratio), -1]
