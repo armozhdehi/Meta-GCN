@@ -58,29 +58,40 @@ def find_shown_index(adj, center_ind, steps = 2):
 
 # imbalance_ratio = 0.03
 # Fixing the train set's imbalance ratio
-def fix_imbalance_ratio(imbalance_ratio, train_X, train_Y, train_idx, val_idx, test_idx):
+def fix_imbalance_ratio(imbalance_ratio, labels_df, features_df, train_idx, val_idx, test_idx):
+    new_train_idX = train_idx
     if imbalance_ratio != None:
-        train_total_count = len(train_Y)
-        train_labels_df = pd.DataFrame(train_Y, columns=['labels'])
-        labels = pd.DataFrame(train_Y, columns=['labels']).labels.unique()
-        train_grouped_df = train_labels_df.groupby(by=['labels'])['labels'].count()
-        train_minority_count = train_grouped_df.min()
-        train_minority_index = train_grouped_df.argmin()
-        n_classes = len(train_grouped_df)
-        concated_train = np.concatenate([train_X, train_Y[:, None]], axis=1)
-        col_num = concated_train.shape[-1]
-        grouped_con_df = pd.DataFrame(pd.DataFrame(concated_train).groupby(by=[col_num - 1]))
+        # imbalance_ratio = 0.05
+        train_total_count = len(train_idx)
+        labels_df = pd.DataFrame(labels_df, columns=['labels'])
+        labels = pd.DataFrame(labels_df, columns=['labels']).labels.unique()
+        temp = labels_df[labels_df.index.isin(train_idx)]
+        train_grouped_df = temp.groupby(by=['labels'])['labels']
+        train_grouped_df_counts = train_grouped_df.count()
+        train_minority_count = train_grouped_df_counts.min()
+        train_minority_label = train_grouped_df_counts.axes[0][train_grouped_df_counts.argmin()]
+        # train_grouped_df
+        # n_classes = len(train_grouped_df)
+        # concated_train = np.concatenate([train_X, train_Y[:, None]], axis=1)
+        # col_num = concated_train.shape[-1]
+        # grouped_con_df = pd.DataFrame(pd.DataFrame(concated_train).groupby(by=[col_num - 1]))
         current_minority_total_ratio = train_minority_count / train_total_count
-        train_minority_label = grouped_con_df.iloc[train_minority_index, 0]
+        # train_minority_label = labels[train_minority_index]
         assert current_minority_total_ratio > imbalance_ratio, "The ratio is below the threshold"
         rest_classes_count = train_total_count - train_minority_count
         reduction = int(imbalance_ratio * rest_classes_count * (imbalance_ratio - 1) + train_minority_count)
-        minority_ndarray = grouped_con_df.iloc[train_minority_index, 1]
-        drop_indices = np.random.choice(minority_ndarray.index, reduction, replace=False)
-        new_train_X = train_X.drop(drop_indices)
-        new_train_Y = train_Y.drop(drop_indices)
-        train_idx = train_idx[: -reduction]
-        val_idx = [x - reduction for x in val_idx]
-        test_idx = [x - reduction for x in test_idx]
-        return new_train_X, new_train_Y, train_idx, val_idx, test_idx
-    return train_X, train_Y, train_idx, val_idx, test_idx
+        # print(labels_df)
+        labels_df_in_training = labels_df[labels_df.index.isin(train_idx)]
+        labels_df_minority = labels_df_in_training[labels_df_in_training['labels'] == train_minority_label]
+        minority_idx = labels_df_minority.index
+        # minority_ndarray = grouped_con_df.iloc[train_minority_index, 1]
+        drop_indices = np.random.choice(minority_idx, reduction, replace=False)
+        # droped_idxs = minority_idx[minority_idx.isin(drop_indices)]
+        new_train_idX = [x for x in train_idx if x not in drop_indices]
+        # new_train_X = train_X.drop(drop_indices)
+        # new_train_Y = train_Y.drop(drop_indices)
+        # train_idx = train_idx[: -reduction]
+        # val_idx = [x - reduction for x in val_idx]
+        # test_idx = [x - reduction for x in test_idx]
+        # return new_train_X, new_train_Y, train_idx, val_idx, test_idx
+    return features_df, labels_df, new_train_idX, val_idx, test_idx
