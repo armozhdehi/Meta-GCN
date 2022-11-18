@@ -21,8 +21,8 @@ def data_loader_diabetes(args):
     diabetes_n_labels = len(diabetes_Y_np)
     for outcome in diabetes_Y_np:
         outcome_group = diabetes_df[diabetes_df['Outcome'] == outcome]
-        first = int(len(outcome_group) * args.train_ratio)
-        last = int(len(outcome_group) * (1 - args.test_ratio))
+        first = int(outcome_group.shape[0] * args.train_ratio)
+        last = int(outcome_group.shape[0] * (1 - args.test_ratio))
         diabetes_train_idx = np.append(diabetes_val_idx, outcome_group[:first].index)
         diabetes_val_idx = np.append(diabetes_val_idx, outcome_group[first:last].index)
         diabetes_test_idx = np.append(diabetes_val_idx, outcome_group[last:].index)
