@@ -23,9 +23,9 @@ def data_loader_diabetes(args):
         outcome_group = diabetes_df[diabetes_df['Outcome'] == outcome]
         first = int(outcome_group.shape[0] * args.train_ratio)
         last = int(outcome_group.shape[0] * (1 - args.test_ratio))
-        diabetes_train_idx = np.append(diabetes_val_idx, outcome_group[:first].index)
+        diabetes_train_idx = np.append(diabetes_train_idx, outcome_group[:first].index)
         diabetes_val_idx = np.append(diabetes_val_idx, outcome_group[first:last].index)
-        diabetes_test_idx = np.append(diabetes_val_idx, outcome_group[last:].index)
+        diabetes_test_idx = np.append(diabetes_test_idx, outcome_group[last:].index)
     # print(diabetes_Y_df)
     # diabetes_train_X_df = diabetes_df.drop(columns=('Glucose')).values[:int(dataset_length * args.train_ratio), :-1]
     # diabetes_train_Y_df = diabetes_df.values[:int(dataset_length * args.train_ratio), -1]
@@ -36,7 +36,7 @@ def data_loader_diabetes(args):
     # diabetes_train_idx = list(range(int(dataset_length * args.train_ratio)))
     # diabetes_val_idx = list(range(int(dataset_length * args.train_ratio), int(dataset_length * (1 - args.test_ratio))))
     # diabetes_test_idx = list(range(int(dataset_length * (1 - args.test_ratio)), dataset_length))
-    diabetes_labels_df, diabetes_features_df, diabetes_train_idx, diabetes_val_idx ,diabetes_val_idx = fix_imbalance_ratio(args.imbalance_ratio, \
+    diabetes_features_df, diabetes_labels_df, diabetes_train_idx, diabetes_val_idx ,diabetes_val_idx = fix_imbalance_ratio(args.imbalance_ratio, \
         diabetes_labels_df, diabetes_features_df, diabetes_train_idx, diabetes_val_idx, diabetes_test_idx)
     G = nx.Graph()
     gam = 4
@@ -111,9 +111,11 @@ def data_loader_haberman(args):
     haberman_n_labels = len(haberman_Y_np)
     for outcome in haberman_Y_np:
         outcome_group = haberman_df[haberman_df['Survival'] == outcome]
-        haberman_train_idx = np.append(haberman_val_idx, outcome_group[:int(len(outcome_group) * args.train_ratio)].index)
-        haberman_val_idx = np.append(haberman_val_idx, outcome_group[int(len(outcome_group) * args.train_ratio):int(len(outcome_group) * (1 - args.test_ratio))].index)
-        haberman_test_idx = np.append(haberman_val_idx, outcome_group[int(len(outcome_group) * (1 - args.test_ratio)):].index)
+        first = int(outcome_group.shape[0] * args.train_ratio)
+        last = int(outcome_group.shape[0] * (1 - args.test_ratio))
+        haberman_train_idx = np.append(haberman_train_idx, outcome_group[:first].index)
+        haberman_val_idx = np.append(haberman_val_idx, outcome_group[first:last].index)
+        haberman_test_idx = np.append(haberman_test_idx, outcome_group[last:].index)
     # print(diabetes_Y_df)
     # diabetes_train_X_df = diabetes_df.drop(columns=('Glucose')).values[:int(dataset_length * args.train_ratio), :-1]
     # diabetes_train_Y_df = diabetes_df.values[:int(dataset_length * args.train_ratio), -1]
@@ -124,7 +126,7 @@ def data_loader_haberman(args):
     # diabetes_train_idx = list(range(int(dataset_length * args.train_ratio)))
     # diabetes_val_idx = list(range(int(dataset_length * args.train_ratio), int(dataset_length * (1 - args.test_ratio))))
     # diabetes_test_idx = list(range(int(dataset_length * (1 - args.test_ratio)), dataset_length))
-    haberman_labels_df, haberman_features_df, haberman_train_idx, haberman_val_idx ,haberman_val_idx = fix_imbalance_ratio(args.imbalance_ratio, \
+    haberman_features_df, haberman_labels_df, haberman_train_idx, haberman_val_idx ,haberman_val_idx = fix_imbalance_ratio(args.imbalance_ratio, \
         haberman_labels_df, haberman_features_df, haberman_train_idx, haberman_val_idx, haberman_test_idx)
     G = nx.Graph()
     gam = 2

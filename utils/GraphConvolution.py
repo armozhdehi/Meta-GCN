@@ -259,6 +259,7 @@ class GCN_Classifier(nn.Module):
         self.device = device
         self.gc1 = GraphConvolution(nembed, nhid)
         self.mlp = nn.Linear(nhid, nclass, device=device).double()
+        # self.mlp = nn.Linear(nhid, nclass, device=device)
         self.dropout = dropout
 
         self.reset_parameters()
