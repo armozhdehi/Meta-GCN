@@ -5,9 +5,9 @@ import torch.nn.functional as F
 def accuracy(output, labels):
     preds = output.max(1)[1].type_as(labels)
     correct = preds.eq(labels).double()
-    # correct = preds.eq(labels)
     correct = correct.sum()
     return correct / len(labels)
+
 def print_class_acc(output, labels, pre='valid'):
     pre_num = 0
     #print class-wise performance

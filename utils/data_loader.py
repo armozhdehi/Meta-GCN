@@ -19,15 +19,15 @@ from sklearn.metrics import roc_auc_score, f1_score
 from copy import deepcopy
 from scipy.spatial.distance import pdist,squareform
 
-def load_data(path="data/cora/", dataset="cora"):#modified from code: pygcn
+def data_loader_cora(args, path="data/cora/"):#modified from code: pygcn
     """Load citation network dataset (cora only for now)"""
     #input: idx_features_labels, adj
     #idx,labels are not required to be processed in advance
     #adj: save in the form of edges. idx1 idx2 
     #output: adj, features, labels are all torch.tensor, in the dense form
     #-------------------------------------------------------
-    print('Loading {} dataset...'.format(dataset))
-    idx_features_labels = np.genfromtxt("{}{}.content".format(path, dataset),
+    # print('Loading {} dataset...'.format(dataset))
+    idx_features_labels = np.genfromtxt("{}{}.content".format(path, "cora"),
                                         dtype=np.dtype(str))
     features = sp.csr_matrix(idx_features_labels[:, 1:-1], dtype=np.float32)
     labels = idx_features_labels[:, -1]
@@ -39,22 +39,38 @@ def load_data(path="data/cora/", dataset="cora"):#modified from code: pygcn
     # build graph
     idx = np.array(idx_features_labels[:, 0], dtype=np.int64)
     idx_map = {j: i for i, j in enumerate(idx)}
-    edges_unordered = np.genfromtxt("{}{}.cites".format(path, dataset),
+    edges_unordered = np.genfromtxt("{}{}.cites".format(path, "cora"),
                                     dtype=np.int64)
     edges = np.array(list(map(idx_map.get, edges_unordered.flatten())),
-                     dtype=np.int32).reshape(edges_unordered.shape)
+                     dtype=np.int64).reshape(edges_unordered.shape)
     adj = sp.coo_matrix((np.ones(edges.shape[0]), (edges[:, 0], edges[:, 1])),
                         shape=(labels.shape[0], labels.shape[0]),
-                        dtype=np.float32)
+                        dtype=np.float64)
     # build symmetric adjacency matrix
     adj = adj + adj.T.multiply(adj.T > adj) - adj.multiply(adj.T > adj)
     features = normalize(features)
     features = torch.DoubleTensor(np.array(features.todense()))
     labels = torch.LongTensor(labels)
-    print_edges_num(adj.todense(), labels)
+    # print_edges_num(adj.todense(), labels)
     adj = sparse_mx_to_torch_sparse_tensor(adj)
+    train_idx = np.array([])
+    val_idx = np.array([])
+    test_idx = np.array([])
+    Y_np = torch.unique(labels)
+    labels_df = pd.DataFrame(labels.numpy())
+    n_labels = len(Y_np)
+    for outcome in Y_np:
+        outcome_group = labels_df[labels_df == outcome]
+        first = int(outcome_group.shape[0] * args.train_ratio)
+        last = int(outcome_group.shape[0] * (1 - args.test_ratio))
+        train_idx = np.append(train_idx, outcome_group[:first].index)
+        val_idx = np.append(val_idx, outcome_group[first:last].index)
+        test_idx = np.append(test_idx, outcome_group[last:].index)
+
     #adj = torch.FloatTensor(np.array(adj.todense()))
-    return adj, features, labels
+    n_features = features.shape[1]
+    return adj, labels, features, \
+        train_idx, val_idx, test_idx, n_features
 
 
 # Generate the Pima Indian Diabetes (Diabetes) graph through the method used in : https://arxiv.org/abs/2103.00221

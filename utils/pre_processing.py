@@ -24,7 +24,7 @@ def print_edges_num(dense_adj, labels):
             col_ind = labels == j
 
             edge_num = dense_adj[row_ind].transpose()[col_ind].sum()
-            print("edges between class {:d} and class {:d}: {:f}".format(i,j,edge_num))
+            # print("edges between class {:d} and class {:d}: {:f}".format(i,j,edge_num))
 
 def norm_sparse(adj):#normalize a torch dense tensor for GCN, and change it into sparse.
     adj = adj + torch.eye(adj.shape[0]).to(adj)
