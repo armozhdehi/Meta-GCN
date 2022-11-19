@@ -1,6 +1,6 @@
 import pandas as pd
 # from utils.pre_processing import fix_imbalance_ratio
-from utils.pre_processing import fix_imbalance_ratio, normalize, sparse_mx_to_torch_sparse_tensor, print_edges_num, fix_imbalance_ratio2
+from utils.pre_processing import fix_imbalance_ratio, normalize, sparse_mx_to_torch_sparse_tensor, print_edges_num, fix_imbalance_ratio2, fix_imbalance_ratio_cora
 import numpy as np
 import networkx as nx
 import torch
@@ -63,12 +63,14 @@ def data_loader_cora(args, path="data/cora/"):#modified from code: pygcn
         outcome_group = labels_df[labels_df == outcome]
         first = int(outcome_group.shape[0] * args.train_ratio)
         last = int(outcome_group.shape[0] * (1 - args.test_ratio))
-        train_idx = np.append(train_idx, outcome_group[:first].index)
-        val_idx = np.append(val_idx, outcome_group[first:last].index)
+        train_idx = np.append(train_idx, outcome_group[: first].index)
+        val_idx = np.append(val_idx, outcome_group[first: last].index)
         test_idx = np.append(test_idx, outcome_group[last:].index)
 
     #adj = torch.FloatTensor(np.array(adj.todense()))
     n_features = features.shape[1]
+    features, labels, train_idx, val_idx ,test_idx = fix_imbalance_ratio_cora(args.imbalance_ratio, \
+        labels, features, train_idx, val_idx, test_idx)
     return adj, labels, features, \
         train_idx, val_idx, test_idx, n_features
 
