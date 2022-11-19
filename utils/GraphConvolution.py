@@ -228,6 +228,22 @@ class GCN_Classifier_s(nn.Module):
 
         return x
 
+class GCN_Encoder_w(nn.Module):
+    def __init__(self, nfeat, nclass, nhid, nembed, dropout, device):
+        super(GCN_Encoder_s, self).__init__()
+
+        self.gc1 = GraphConvolution(nfeat, nhid)
+        self.dropout = dropout
+        self.gc2 = GraphConvolution(nembed, nhid)
+        self.mlp = nn.Linear(nhid, nclass, device = device).double()
+    def forward(self, x, adj):
+        x = F.relu(self.gc1(x, adj))
+        x = F.dropout(x, self.dropout, training=self.training)
+        x = F.relu(self.gc2(x, adj))
+        x = F.dropout(x, self.dropout, training=self.training)
+        x = self.mlp(x)
+        return x
+
 class Decoder_s(Module):
     """
     Simple Graphsage layer

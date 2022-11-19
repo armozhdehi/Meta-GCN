@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 
 # Balanced sampling
@@ -20,3 +19,5 @@ def balanced_sampling(args, val_size):
         balanced_val_idx += list(temp_df.index)
         balanced_val_set = pd.DataFrame(np.concatenate([balanced_val_set, temp_df.to_numpy()], axis=0))
     return balanced_val_set, balanced_val_idx
+
+def next(args, features, labels, val_idx):
