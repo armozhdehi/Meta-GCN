@@ -209,11 +209,11 @@ class GCN_Encoder_s(nn.Module):
         return x
 
 class GCN_Classifier_s(nn.Module):
-    def __init__(self, nembed, nhid, nclass, dropout):
+    def __init__(self, nembed, nhid, nclass, dropout, device):
         super(GCN_Classifier_s, self).__init__()
 
         self.gc1 = GraphConvolution(nembed, nhid)
-        self.mlp = nn.Linear(nhid, nclass).double()
+        self.mlp = nn.Linear(nhid, nclass, device = device).double()
         self.dropout = dropout
 
         self.reset_parameters()
