@@ -195,6 +195,66 @@ class GraphConvolution(Module):
             return output
 
 
+class GCN_Encoder_s(nn.Module):
+    def __init__(self, nfeat, nhid, nembed, dropout):
+        super(GCN_Encoder_s, self).__init__()
+
+        self.gc1 = GraphConvolution(nfeat, nhid)
+        self.dropout = dropout
+
+    def forward(self, x, adj):
+        x = F.relu(self.gc1(x, adj))
+        x = F.dropout(x, self.dropout, training=self.training)
+
+        return x
+
+class GCN_Classifier_s(nn.Module):
+    def __init__(self, nembed, nhid, nclass, dropout):
+        super(GCN_Classifier_s, self).__init__()
+
+        self.gc1 = GraphConvolution(nembed, nhid)
+        self.mlp = nn.Linear(nhid, nclass).double()
+        self.dropout = dropout
+
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        nn.init.normal_(self.mlp.weight,std=0.05)
+
+    def forward(self, x, adj):
+        x = F.relu(self.gc1(x, adj))
+        x = F.dropout(x, self.dropout, training=self.training)
+        x = self.mlp(x)
+
+        return x
+
+class Decoder_s(Module):
+    """
+    Simple Graphsage layer
+    """
+
+    def __init__(self, nembed, dropout=0.1):
+        super(Decoder_s, self).__init__()
+        self.dropout = dropout
+
+        self.de_weight = Parameter(torch.FloatTensor(nembed, nembed))
+
+        self.reset_parameters()
+
+
+    def reset_parameters(self):
+        stdv = 1. / math.sqrt(self.de_weight.size(1))
+        self.de_weight.data.uniform_(-stdv, stdv)
+
+
+    def forward(self, node_embed):
+        
+        combine = F.linear(node_embed, self.de_weight)
+        adj_out = torch.sigmoid(torch.mm(combine, combine.transpose(-1,-2)))
+
+        return adj_out
+
+
 class GCN_Encoder(nn.Module):
     def __init__(self, nfeat, nhid, nembed, dropout):
         super(GCN_Encoder, self).__init__()
