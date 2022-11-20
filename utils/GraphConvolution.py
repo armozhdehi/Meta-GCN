@@ -230,7 +230,7 @@ class GCN_Classifier_s(nn.Module):
 
 class GCN_Encoder_w(nn.Module):
     def __init__(self, nfeat, nclass, nhid, nembed, dropout, device):
-        super(GCN_Encoder_s, self).__init__()
+        super(GCN_Encoder_w, self).__init__()
 
         self.gc1 = GraphConvolution(nfeat, nhid)
         self.dropout = dropout
