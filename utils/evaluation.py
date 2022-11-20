@@ -30,6 +30,8 @@ def print_class_acc(output, labels, pre='valid'):
         auc_score = roc_auc_score(labels.detach(), F.softmax(output, dim=-1).detach(), average='macro', multi_class='ovr')
     else:
         auc_score = roc_auc_score(labels.detach(), F.softmax(output, dim=-1)[:,1].detach(), average='macro')
+
     macro_F = f1_score(labels.detach(), torch.argmax(output, dim=-1).detach(), average='macro')
     print(str(pre)+' current auc-roc score: {:f}, current macro_F score: {:f}'.format(auc_score,macro_F))
+
     return

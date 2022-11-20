@@ -31,13 +31,17 @@ def next(args, features, labels, val_idx, adj_mtx):
     for label in unique_labels:
         labels_idxs = (labels == label.item()).nonzero()
         labels_idxs_temp = [idx for idx in labels_idxs if idx in val_idx]
-        labels_idxs = torch.tensor(labels_idxs_temp) # labels_idxs = labels_idxs[labels_idxs in val_idx]
-        indice = random.sample(range(labels_idxs.shape[0]), n_samples)
-        indice = torch.tensor(indice)
+        # temp = np.array(labels_idxs_temp, dtype=np.float64)
+        # indice = np.random.choice(temp, n_samples, replace=False)
+        indice = torch.tensor(np.random.choice(np.array([idx for idx in labels_idxs if idx in val_idx], dtype=np.int64), \
+            n_samples, replace=False), requires_grad=False)
+        # labels_idxs = torch.tensor(labels_idxs_temp) # labels_idxs = labels_idxs[labels_idxs in val_idx]
+        # indice = random.sample(range(labels_idxs.shape[0]), n_samples)
+        # indice = torch.tensor(indice)
         if sampled_val_idx == None:
-            sampled_val_idx = labels_idxs[indice]
+            sampled_val_idx = indice
         else:
-            sampled_val_idx = torch.stack((sampled_val_idx, labels_idxs[indice]), 1)
+            sampled_val_idx = torch.cat((sampled_val_idx, indice), 0)
     sampled_val_idx = sampled_val_idx.reshape(-1)
     new_adj_mtx = torch.zeros(sampled_val_idx.shape[0], sampled_val_idx.shape[0])
     for new_idx, idx in enumerate(sampled_val_idx):
@@ -55,14 +59,16 @@ def next2(args, features, labels, val_idx, adj_mtx):
     sampled_val_idx = None
     for label in unique_labels:
         labels_idxs = (labels == label.item()).nonzero()
-        labels_idxs_temp = [idx for idx in labels_idxs if idx in val_idx]
-        labels_idxs = torch.tensor(labels_idxs_temp) # labels_idxs = labels_idxs[labels_idxs in val_idx]
-        indice = random.sample(range(labels_idxs.shape[0]), n_samples)
-        indice = torch.tensor(indice)
+        # labels_idxs_temp = [idx for idx in labels_idxs if idx in val_idx]
+        indice = torch.tensor(np.random.choice(np.array([idx for idx in labels_idxs if idx in val_idx], dtype=np.int64), \
+            n_samples, replace=False), requires_grad=False)
+        # labels_idxs = torch.tensor(labels_idxs_temp) # labels_idxs = labels_idxs[labels_idxs in val_idx]
+        # indice = random.sample(range(labels_idxs.shape[0]), n_samples)
+        # indice = torch.tensor(indice)
         if sampled_val_idx == None:
-            sampled_val_idx = labels_idxs[indice]
+            sampled_val_idx = indice
         else:
-            sampled_val_idx = torch.stack((sampled_val_idx, labels_idxs[indice]), 1)
+            sampled_val_idx = torch.cat((sampled_val_idx, indice), 0)
     sampled_val_idx = sampled_val_idx.reshape(-1)
     new_adj_mtx = torch.zeros(adj_mtx.shape)
     for idx in sampled_val_idx:
