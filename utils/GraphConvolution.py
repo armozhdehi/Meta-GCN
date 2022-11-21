@@ -405,6 +405,7 @@ class GCN_Encoder3(nn.Module):
 
         self.dropout = dropout
         self.nclass = nclass
+        self.res_connection = res_connection
 
     def forward(self, x, adj, funct):
         if funct == "ReLU":
