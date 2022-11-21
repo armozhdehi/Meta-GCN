@@ -217,8 +217,6 @@ class GCN_Encoder_s(nn.Module):
         elif funct == "LeakyReLU":
             func = F.leaky_relu
         elif funct == "Sigmoid":
-            func = sigmoid
-        elif funct == "Sigmoid":
             func = nn.Sigmoid()
         elif funct == "PReLU":
             func = nn.PReLU()
@@ -256,8 +254,6 @@ class GCN_Classifier_s(nn.Module):
         elif funct == "LeakyReLU":
             func = F.leaky_relu
         elif funct == "Sigmoid":
-            func = sigmoid
-        elif funct == "Sigmoid":
             func = nn.Sigmoid()
         elif funct == "PReLU":
             func = nn.PReLU()
@@ -268,28 +264,33 @@ class GCN_Classifier_s(nn.Module):
         return x
 
 class GCN_Encoder_w(nn.Module):
-    def __init__(self, nfeat, nclass, nhid, nembed, dropout, device, func, init = None):
+    def __init__(self, nfeat, nclass, nhid, nembed, dropout, device, func, init = None, res_connection = False):
         super(GCN_Encoder_w, self).__init__()
 
         self.gc1 = GraphConvolution(nfeat, nhid, init = init)
         self.dropout = dropout
         self.gc2 = GraphConvolution(nembed, nhid, init = init)
         self.mlp = nn.Linear(nhid, nclass, device = device).double()
+        self.res_connection = res_connection
     def forward(self, x, adj, funct):
         if funct == "ReLU":
             func = F.relu
         elif funct == "LeakyReLU":
             func = F.leaky_relu
         elif funct == "Sigmoid":
-            func = sigmoid
-        elif funct == "Sigmoid":
             func = nn.Sigmoid()
         elif funct == "PReLU":
             func = nn.PReLU()
         x = func(self.gc1(x, adj)).double()
         x = F.dropout(x, self.dropout, training=self.training).double()
-        x = func(self.gc2(x, adj)).double()
-        x = F.dropout(x, self.dropout, training=self.training).double()
+        if not self.res_connection:
+            x = func(self.gc2(x, adj)).double()
+            x = F.dropout(x, self.dropout, training=self.training).double()
+        else:
+            temp = x
+            x = func(self.gc2(x, adj)).double()
+            x = F.dropout(x, self.dropout, training=self.training).double()
+            x = temp + x
         x = self.mlp(x).double()
         return x
 
@@ -346,8 +347,6 @@ class GCN_Encoder(nn.Module):
         elif funct == "LeakyReLU":
             func = F.leaky_relu
         elif funct == "Sigmoid":
-            func = sigmoid
-        elif funct == "Sigmoid":
             func = nn.Sigmoid().double()
         elif funct == "PReLU":
             func = nn.PReLU().double()
@@ -357,7 +356,7 @@ class GCN_Encoder(nn.Module):
         return x
 
 class GCN_Encoder2(nn.Module):
-    def __init__(self, nfeat, nhid, nembed, dropout, init = None):
+    def __init__(self, nfeat, nhid, nembed, dropout, init = None, res_connection = False):
         super(GCN_Encoder2, self).__init__()
 
         self.gc1 = GraphConvolution(nfeat, nhid, init = init)
@@ -370,19 +369,23 @@ class GCN_Encoder2(nn.Module):
         elif funct == "LeakyReLU":
             func = F.leaky_relu
         elif funct == "Sigmoid":
-            func = sigmoid
-        elif funct == "Sigmoid":
             func = nn.Sigmoid().double()
         elif funct == "PReLU":
             func = nn.PReLU().double()
         x = func(self.gc1(x, adj)).double()
         x = F.dropout(x, self.dropout, training=self.training).double()
-        x = func(self.gc2(x, adj)).double()
-        x = F.dropout(x, self.dropout, training=self.training).double()
+        if not self.res_connection:
+            x = func(self.gc2(x, adj)).double()
+            x = F.dropout(x, self.dropout, training=self.training).double()
+        else:
+            temp = x
+            x = func(self.gc2(x, adj)).double()
+            x = F.dropout(x, self.dropout, training=self.training).double()
+            x = temp + x
         return x
 
 class GCN_Encoder3(nn.Module):
-    def __init__(self, nfeat, nhid, nembed, dropout, nclass, order, init = None):
+    def __init__(self, nfeat, nhid, nembed, dropout, nclass, order, init = None, res_connection = False):
         super(GCN_Encoder3, self).__init__()
 
         layers = []
@@ -409,16 +412,24 @@ class GCN_Encoder3(nn.Module):
         elif funct == "LeakyReLU":
             func = F.leaky_relu
         elif funct == "Sigmoid":
-            func = sigmoid
-        elif funct == "Sigmoid":
             func = nn.Sigmoid().double()
         elif funct == "PReLU":
             func = nn.PReLU().double()
         end_layer = len(self.gc) - 1 if self.nclass > 1 else len(self.gc)
-        for i in range(end_layer):
-            x = F.dropout(x, self.dropout, training=self.training).double()
-            x = self.gc[i](x, adj).double()
-            x = func(x).double()
+        x = F.dropout(x, self.dropout, training=self.training).double()
+        x = self.gc[0](x, adj).double()
+        x = func(x).double()
+        for i in range(1, end_layer):
+            if not self.res_connection:
+                x = F.dropout(x, self.dropout, training=self.training).double()
+                x = self.gc[i](x, adj).double()
+                x = func(x).double()
+            else:
+                temp = x
+                x = F.dropout(x, self.dropout, training=self.training).double()
+                x = self.gc[i](x, adj).double()
+                x = func(x).double()
+                x = temp + x
         return x
 
 class GCN_Classifier(nn.Module):
@@ -450,8 +461,6 @@ class GCN_Classifier(nn.Module):
             func = F.relu
         elif funct == "LeakyReLU":
             func = F.leaky_relu
-        elif funct == "Sigmoid":
-            func = sigmoid
         elif funct == "Sigmoid":
             func = nn.Sigmoid().double()
         elif funct == "PReLU":
