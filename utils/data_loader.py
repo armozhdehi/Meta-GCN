@@ -18,6 +18,8 @@ import random
 from sklearn.metrics import roc_auc_score, f1_score
 from copy import deepcopy
 from scipy.spatial.distance import pdist,squareform
+from torch_geometric.datasets import Planetoid
+
 
 def data_loader_cora(args, path="data/cora/"):#modified from code: pygcn
     """Load citation network dataset (cora only for now)"""
@@ -257,3 +259,4 @@ def data_loader_haberman(args):
 
 # data_loader_diabetes(args)
 
+def data_loader_pubmed(args):
