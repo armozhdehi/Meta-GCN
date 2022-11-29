@@ -207,4 +207,5 @@ def fix_imbalance_ratio_cora(imbalance_ratio, labels_df, features_df, train_idx,
             minority_idx = labels_df_minority.index
             drop_indices = np.random.choice(minority_idx, reduction, replace=False)
             new_train_idX = [x for x in train_idx if x not in drop_indices]
+            new_train_idX = torch.tensor(new_train_idX)
     return features_df, labels_df, new_train_idX, val_idx, test_idx

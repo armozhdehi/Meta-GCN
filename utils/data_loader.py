@@ -260,8 +260,69 @@ def data_loader_haberman(args):
 
 # data_loader_diabetes(args)
 
+def data_loader_cora2(args):
+    dataset = Planetoid(root='.', split='full', name="cora")
+    data = dataset[0]
+    features = data.x
+    labels = data.y
+    features = features.double()
+    labels = labels.long()
+    # print_edges_num(adj.todense(), labels)
+    adj = to_dense_adj(dataset[0].edge_index)[0]
+    train_idx = np.array([])
+    val_idx = np.array([])
+    test_idx = np.array([])
+    Y_np = torch.unique(labels)
+    labels_df = pd.DataFrame(labels.numpy())
+    n_labels = len(Y_np)
+    for outcome in Y_np:
+        outcome_group = labels_df[labels_df == outcome]
+        first = int(outcome_group.shape[0] * args.train_ratio)
+        last = int(outcome_group.shape[0] * (1 - args.test_ratio))
+        train_idx = np.append(train_idx, outcome_group[: first].index)
+        val_idx = np.append(val_idx, outcome_group[first: last].index)
+        test_idx = np.append(test_idx, outcome_group[last:].index)
+
+    #adj = torch.FloatTensor(np.array(adj.todense()))
+    n_features = features.shape[1]
+    features, labels, train_idx, val_idx ,test_idx = fix_imbalance_ratio_cora(args.imbalance_ratio, \
+        labels, features, train_idx, val_idx, test_idx)
+    return adj, labels, features, \
+        train_idx, val_idx, test_idx, n_features
+
+
 def data_loader_pubmed(args):
     dataset = Planetoid(root='.', split='full', name="pubmed")
+    data = dataset[0]
+    features = data.x
+    labels = data.y
+    features = features.double()
+    labels = labels.long()
+    # print_edges_num(adj.todense(), labels)
+    adj = to_dense_adj(dataset[0].edge_index)[0]
+    train_idx = np.array([])
+    val_idx = np.array([])
+    test_idx = np.array([])
+    Y_np = torch.unique(labels)
+    labels_df = pd.DataFrame(labels.numpy())
+    n_labels = len(Y_np)
+    for outcome in Y_np:
+        outcome_group = labels_df[labels_df == outcome]
+        first = int(outcome_group.shape[0] * args.train_ratio)
+        last = int(outcome_group.shape[0] * (1 - args.test_ratio))
+        train_idx = np.append(train_idx, outcome_group[: first].index)
+        val_idx = np.append(val_idx, outcome_group[first: last].index)
+        test_idx = np.append(test_idx, outcome_group[last:].index)
+
+    #adj = torch.FloatTensor(np.array(adj.todense()))
+    n_features = features.shape[1]
+    features, labels, train_idx, val_idx ,test_idx = fix_imbalance_ratio_cora(args.imbalance_ratio, \
+        labels, features, train_idx, val_idx, test_idx)
+    return adj, labels, features, \
+        train_idx, val_idx, test_idx, n_features
+
+def data_loader_citeseer(args):
+    dataset = Planetoid(root='.', split='full', name="CiteSeer")
     data = dataset[0]
     features = data.x
     labels = data.y
