@@ -209,3 +209,38 @@ def fix_imbalance_ratio_cora(imbalance_ratio, labels_df, features_df, train_idx,
             new_train_idX = [x for x in train_idx if x not in drop_indices]
             new_train_idX = torch.tensor(new_train_idX)
     return features_df, labels_df, new_train_idX, val_idx, test_idx
+
+def fix_imbalance_ratio_geo(imbalance_ratio, labels_df, features_df, train_idx, val_idx, test_idx, minority_labels):
+    new_train_idX = train_idx
+    if imbalance_ratio != None:
+        # train_total_count = len(train_idx)
+        labels_df = pd.DataFrame(labels_df, columns=['labels'])
+        labels = pd.DataFrame(labels_df, columns=['labels']).labels.unique()
+        temp = labels_df[labels_df.index.isin(train_idx)]
+        train_grouped_df = temp.groupby(by=['labels'])['labels']
+        # train_grouped_df_counts = train_grouped_df.count()
+        # train_minority_count = train_grouped_df_counts.min()
+        # train_minority_label = train_grouped_df_counts.axes[0][train_grouped_df_counts.argmin()]
+        # current_minority_total_ratio = train_minority_count / train_total_count
+        # assert current_minority_total_ratio > imbalance_ratio, "The ratio is below the threshold"
+        # rest_classes_count = train_total_count - train_minority_count
+        # reduction = int(imbalance_ratio * rest_classes_count * (imbalance_ratio - 1) + train_minority_count)
+        # labels_df_in_training = labels_df[labels_df.index.isin(train_idx)]
+        # labels_df_minority = labels_df_in_training[labels_df_in_training['labels'] == train_minority_label]
+        # minority_idx = labels_df_minority.index
+        # drop_indices = np.random.choice(minority_idx, reduction, replace=False)
+        # new_train_idX = [x for x in train_idx if x not in drop_indices]
+        for train_minority_label in minority_labels:
+            train_grouped_df_counts = train_grouped_df.count()
+            train_minority_count = train_grouped_df_counts[train_minority_label]
+            current_minority_total_ratio = train_minority_count / train_grouped_df_counts.max()
+            assert current_minority_total_ratio > imbalance_ratio, "The ratio is below the threshold"
+            rest_classes_count = train_grouped_df_counts.max() - train_minority_count
+            reduction = int(imbalance_ratio * rest_classes_count * (imbalance_ratio - 1) + train_minority_count)
+            labels_df_in_training = labels_df[labels_df.index.isin(train_idx)]
+            labels_df_minority = labels_df_in_training[labels_df_in_training['labels'] == train_minority_label]
+            minority_idx = labels_df_minority.index
+            drop_indices = np.random.choice(minority_idx, reduction, replace=False)
+            new_train_idX = [x for x in train_idx if x not in drop_indices]
+            new_train_idX = torch.tensor(new_train_idX)
+    return features_df, labels_df, new_train_idX, val_idx, test_idx
