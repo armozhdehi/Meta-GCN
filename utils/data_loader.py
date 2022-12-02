@@ -20,6 +20,8 @@ from copy import deepcopy
 from scipy.spatial.distance import pdist,squareform
 from torch_geometric.datasets import Planetoid
 import torch_geometric.utils.to_dense_adj as to_dense_adj
+from torch_geometric.transforms import NormalizeFeatures
+
 
 
 def data_loader_cora(args, path="data/cora/"):#modified from code: pygcn
@@ -261,7 +263,7 @@ def data_loader_haberman(args):
 # data_loader_diabetes(args)
 
 def data_loader(args, ds, minoriy_classes):
-    dataset = Planetoid(root='.', split='full', name=ds)
+    dataset = Planetoid(root='.', split='full', name=ds, transform=NormalizeFeatures())
     data = dataset[0]
     features = data.x
     labels = data.y

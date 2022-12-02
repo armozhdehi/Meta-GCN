@@ -1,4 +1,5 @@
 # !pip install higher tensorboard scipy networkx scikit-learn
+from torch_geometric.nn import Sequential, GCNConv
 import torch
 from tqdm.notebook import tqdm
 import torch.nn as nn
@@ -114,6 +115,11 @@ import torch
 import ipdb
 from scipy.io import loadmat
 from collections import defaultdict
+import math
+import torch
+from torch.nn.parameter import Parameter
+from torch.nn.modules.module import Module
+
 # torch.backends.cudnn.enabled = True
 # torch.backends.cudnn.benchmark = True
 
@@ -203,6 +209,40 @@ class GraphConvolution(Module):
         else:
             return output
 
+# class GraphConvolution(Module):
+#     """
+#     Simple GCN layer, similar to https://arxiv.org/abs/1609.02907
+#     """
+
+#     def __init__(self, in_features, out_features, bias=True):
+#         super(GraphConvolution, self).__init__()
+#         self.in_features = in_features
+#         self.out_features = out_features
+#         self.weight = Parameter(torch.FloatTensor(in_features, out_features))
+#         if bias:
+#             self.bias = Parameter(torch.FloatTensor(out_features))
+#         else:
+#             self.register_parameter('bias', None)
+#         self.reset_parameters()
+
+#     def reset_parameters(self):
+#         stdv = 1. / math.sqrt(self.weight.size(1))
+#         self.weight.data.uniform_(-stdv, stdv)
+#         if self.bias is not None:
+#             self.bias.data.uniform_(-stdv, stdv)
+
+#     def forward(self, input, adj):
+#         support = torch.mm(input, self.weight)
+#         output = torch.spmm(adj, support)
+#         if self.bias is not None:
+#             return output + self.bias
+#         else:
+#             return output
+
+#     def __repr__(self):
+#         return self.__class__.__name__ + ' (' \
+#                + str(self.in_features) + ' -> ' \
+#                + str(self.out_features) + ')'
 
 class GCN_Encoder_s(nn.Module):
     def __init__(self, nfeat, nhid, nembed, dropout, init = None):
@@ -476,3 +516,34 @@ class GCN_Classifier(nn.Module):
 def sigmoid(mx):
     mx = torch.sigmoid(mx).double()
     return F.normalize(mx, p=1).double()
+
+from torch.nn import Linear, ReLU, Dropout
+from torch_geometric.nn import Sequential, GCNConv, JumpingKnowledge
+from torch_geometric.nn import global_mean_pool
+
+class GCN_n(torch.nn.Module):
+    def __init__(self, hidden_channels, num_features, num_classes, dropout, init, res_connection, device):
+        super().__init__()
+        torch.manual_seed(1234567)
+        # self.conv1 = GCNConv(num_features, hidden_channels).to(device)
+        # self.conv2 = GCNConv(hidden_channels, num_classes).to(device)
+        self.conv1 = GraphConvolution(num_features, hidden_channels[0], init = init)
+        self.conv2 = GraphConvolution(hidden_channels[-1], num_classes, init = init)
+        self.dropout = dropout
+
+    def forward(self, x, edge_index, funct):
+        if funct == "ReLU":
+            func = F.relu
+        elif funct == "LeakyReLU":
+            func = F.leaky_relu
+        elif funct == "Sigmoid":
+            func = nn.Sigmoid().double()
+        elif funct == "PReLU":
+            func = nn.PReLU().double()
+        h = self.conv1(x, edge_index)
+        h = func(h)
+        h = F.dropout(h, p=self.dropout, training=self.training)
+        embed = h
+        x = self.conv2(h, edge_index)
+        x = func(x)
+        return F.log_softmax(x, dim=1), embed
